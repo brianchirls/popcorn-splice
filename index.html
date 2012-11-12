@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Popcorn Splice Player</title>
+		<style>
+			body {
+				font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				overflow: hidden;
+				font-size: 20px;
+			}
+
+			#video {
+				margin: 0 auto;
+				width: 800px;
+				/*
+				height: 450px;
+				*/
+				position: relative;
+				overflow: hidden;
+				border: #676767 solid 1px;
+				background-color: '#D1D1D1'
+			}
+
+			a {
+				color: black;
+			}
+
+			#video-player {
+				background-color: white;
+				margin: 20px auto;
+				width: 800px;
+				height: 32px;
+				position: relative;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+
+			#playbutton {
+				display: inline-block;
+				height: 32px;
+				width: 24px;
+				background-position: top left;
+				background-repeat: no-repeat;
+				background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEQSURBVFiF1ZexDYMwEEX/ISQmYIrMwwI0GLGQaRgA5skUTOAGp4mlSxAIMMbn1wEC+f1XQUqp0RjTDcMwIwBKKbv3XGtNPu9n1tqqKIp30zTVlQPGJgMAa21JRGPbtmNd12XsQ50h4xcp1sj+b6RWYyXgSKXGpgCQRo1dAYfkGocEALk1Dgs4pNU4LQDIqnFJwCGhhpcAEL+Gt4AjVo3bBIA4NW4VcDxZI4jAkwQRIKLJGPPq+34K8X1OfufHiGhelqXTWgc/uOM2ge/qwX5Nt/AWiLE6x0sg1uqcSwKxV+ecFpCwOuewgKTVOYcEpK3O2RWQujpnU0Dy6pyVQAqrc34EUlmdkwPprc7JU1yd8wELddH8DWv9lQAAAABJRU5ErkJggg==);
+				cursor: pointer;
+			}
+
+			#playbutton.playing {
+				background-position: top right;
+			}
+
+			#timeline {
+				display: inline-block;
+				position: relative;
+				width: 766px;
+				margin: 14px 0px 14px 10px;
+				height: 4px;
+				background-color: #aaa;
+				cursor: pointer;
+			}
+
+			#timecode {
+				/* display: none; */
+			}
+
+			#progress {
+				display: inline-block;
+				height: 4px;
+				width: 0%;
+				background-color: #676767;
+				position: absolute;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="video"></div>
+
+		<div id="video-player">
+			<div id="playbutton"> </div><div id="timeline"><div id="progress"> </div></div>
+		</div>
+		<div id="timecode">0:00:00.000</div>
+
+		<script type="text/javascript" src="lib/popcorn.js"></script>
+		<script type="text/javascript" src="lib/popcorn._mediaElementProto.js"></script>
+		<script type="text/javascript" src="lib/popcorn.HTMLYouTubeVideoElement.js"></script>
+		<script type="text/javascript" src="lib/popcorn.HTMLVimeoVideoElement.js"></script>
+		<script type="text/javascript" src="lib/popcorn.HTMLImageVideoElement.js"></script>
+
+		<script type="text/javascript" src="popcorn.splice.js"></script>
+		<script type="text/javascript" src="lib/touch.js"></script>
+
+		<script type="text/javascript">
+		(function(){
+
+			var video, popcorn, src,
+
+				events = [
+					//'switchplayer',
+
+					'timeupdate',
+					'ended',
+					'durationchange',
+					'loadedmetadata',
+					'loadstart',
+					'loadeddata',
+					'canplay',
+					'canplaythrough',
+					'progress',
+					'error',
+					'playing',
+					'suspend',
+					'waiting',
+					'seeking',
+					'seeked',
+					'play',
+					'pause',
+					'volumechange'
+				],
+				props = [
+					'duration',
+					'videoWidth',
+					'videoHeight',
+					'width',
+					'height',
+					'currentTime',
+					'volume',
+					'muted',
+					'networkState',
+					'readyState',
+					'buffered'
+				],
+
+				//player components
+				playbutton, timeline, progress, playtext, timecode,
+				addClass, removeClass;
+
+			function testEvents(vid) {
+				function logEvent(e) {
+					var args = [];
+					if (e && e.type) {
+						args.push(e.type);
+					} else {
+						args.push(vid.id);
+					}
+					Popcorn.forEach(props, function(prop) {
+						args.push(prop, vid[prop]);
+					});
+
+					if (vid.buffered && vid.buffered.length) {
+						args.push(vid.buffered.end(0));
+					}
+
+					console.log.apply(console, args);
+				}
+
+				if (!vid) {
+					vid = document.createElement('video');
+					document.body.insertBefore(vid, document.body.firstChild);
+					logEvent();
+					vid.src = '../popcorn-inception/video/demo.webm';
+				}
+
+				Popcorn.forEach(events, function (evt) {
+					vid.addEventListener(evt, logEvent, true);
+				});
+
+				logEvent();
+			}
+
+			//testEvents();
+
+			playbutton = document.getElementById('playbutton');
+			timeline = document.getElementById('timeline');
+			progress = document.getElementById('progress');
+			timecode = document.getElementById('timecode');
+
+			playButton = document.getElementById('play');
+			video = Popcorn.SplicePlayer('#video');
+
+			src = [
+			
+				'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAClCAYAAAA3d5OIAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH2gIPFxcpA4p/0AAAA2BJREFUeJzt2r9qVHkcxuHvmRyHhCASRcRStErnwnYWWdgljaX1doqCld5CRNhLELtd8AJs1sq5AmFTuMUqoiABXSZIxEgyzngDyWbI4vsrfJ72/HnPwHw4U0w3Go1m1cjz59drdfWfJtt/j8/XrdOPmmxXVfUvrtXk0r9Ntq/8caU2Hm402a6qGg9+qdPT/Sbb909cqyf7t5tsV1UNmi3Dd0hwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6C+rW1duPLyz/W4uK4yfbZ6akabTeZrqqqeycv17Phsybbf/2wVGujJtNVVbVy82IN3r9vsr2+PqzRjSbTVeUNB1GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgqO9PPm02PhuOa78/dejxy6sX6szK4cf/j+Xpcm1/Pv6/l7dejevNy3fHvv7DtGpx/9yxr/9P3bQ+94f/OXiws1MnNje/zfYcph8/1uzLlyPP67quBoP53gkLCwtznbe1tVWbDT97VxeuzpqtH+HPB3dq/eefWj/Gge7++luNfn/d+jEONBl8qrcrj1s/xqF2d3drNjv6a9f3fQ2Hw7nuubS0VF3XHXneZDKpvb29ue75LfhJCUGCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CvgJd+V3gFFLyFgAAAABJRU5ErkJggg==#duration=1.3',
+				{
+					src: [
+						'../popcorn-inception/video/demo.webm',
+						'http://videos.mozilla.org/serv/webmademovies/popcornsite.webm'
+					],
+					from: 10,
+					to: 15
+				},
+				{
+					to: 5,
+					src: [
+						'../popcorn-inception/video/atultroll.webm',
+						'http://videos.mozilla.org/serv/webmademovies/atultroll.webm'
+					]
+				}
+			];
+
+/*
+			console.log(video.canPlayType('video/webm'));
+			console.log(video.canPlayType('video/mp4'));
+			console.log(video.canPlayType('video/x-vimeo'));
+			console.log(video._canPlaySrc('http://vimeo.com/45232468'));
+			console.log(video._canPlaySrc('http://videos.mozilla.org/serv/webmademovies/popcornsite.webm'));
+
+			console.log(video._canPlaySrc({}));
+			console.log(video._canPlaySrc({
+				src: 'http://vimeo.com/45232468'
+			}));
+			console.log(video._canPlaySrc(src));
+*/
+			video.id = 'splice';
+			video.src = src;
+			testEvents(video);
+			//video.play();
+			//video.loop = true;
+			//video.poster = 'http://videos.mozilla.org/serv/webmademovies/popcornposter.png';
+			video.addEventListener('loadedmetadata', function() {
+				video.volume = 0.5;
+			}, false);
+
+			video.addEventListener('waiting', function() {
+				console.log('waiting...');
+			}, false);
+
+			video.style.border = 'blue solid 1px';
+
+			popcorn = Popcorn(video);
+
+			//set up player
+			if (document === undefined ||
+				!(document.createElement('a')).classList ) {
+
+				addClass = function (element, c) {
+					var curClasses = element.getAttribute('class') || '';
+					curClasses = curClasses.split(' ');
+
+					if (curClasses.indexOf(c) < 0) {
+						curClasses.push(c);
+					}
+
+					element.setAttribute('class', curClasses.join(' '));
+				};
+
+				removeClass = function (element, c) {
+					var i, curClasses = element.getAttribute('class') || '';
+					curClasses = curClasses.split(' ');
+
+					i = curClasses.indexOf(c);
+					curClasses.splice(i, 1);
+
+					element.setAttribute('class', curClasses.join(' '));
+				};
+			} else {
+				addClass = function (element, c) {
+					element.classList.add(c);
+				};
+
+				removeClass = function (element, c) {
+					element.classList.remove(c);
+				};
+			}
+
+			window.addEventListener('keyup', function(evt) {
+				if (evt.which === 32) {
+					if (video.paused) {
+						video.play();
+					} else {
+						video.pause();
+					}
+				}
+			}, true);
+
+			window.addEventListener('keydown', function(evt) {
+				if (video.paused) {
+					if (evt.which === 37) {
+						video.currentTime = Math.max(0, video.currentTime - 1/30);
+					} else if (evt.which === 39) {
+						video.currentTime = Math.max(0, video.currentTime + 1/30);
+					}
+				}
+			}, true);
+
+			video.addEventListener('play', function() {
+				addClass(playbutton, 'playing');
+			}, false);
+
+			video.addEventListener('pause', function() {
+				removeClass(playbutton, 'playing');
+				addClass(playbutton, 'paused');
+			}, false);
+
+			video.addEventListener('timeupdate', function() {
+				var t,h,m,s;
+				progress.style.width = Math.floor(100 * video.currentTime / video.duration) + '%';
+
+				t = video.currentTime;
+				h = Math.floor(t / 3600);
+				m = Math.floor(t / 60) % 60;
+				s = Math.round((t % 60) * 1000) / 1000;
+				if (m < 10) {
+					m = '0' + m;
+				}
+
+				t = h + ':' + m + ':';
+				if (s < 10) {
+					t += '0'
+				}
+				t += s;
+				if (s === Math.floor(s)) {
+					t += '.000';
+				} else {
+					s = (s + '').split('.')[1];
+					if (s.length === 1) {
+						t += '00';
+					} else if (s.length === 2) {
+						t += '0';
+					}
+				}
+				timecode.firstChild.nodeValue = t;
+			}, false);
+
+			playbutton.addEventListener('click', function() {
+				if (video.paused) {
+					video.play();
+				} else {
+					video.pause();
+				}
+			}, false);
+
+			new Touch(timeline, function (evt, x, y) {
+				var t, posx, parent;
+
+				//ignore right-click
+				if (evt.which === 3) {
+					return false;
+				} else if (evt.button === 2) {
+					return false;
+				}
+
+				posx = x - timeline.clientLeft - timeline.offsetLeft;
+				parent = timeline.offsetParent;
+				while (parent && parent.nodeName !== 'BODY') {
+					posx -= parent.clientLeft + parent.offsetLeft;
+					parent = parent.offsetParent;
+				}
+				posx = Math.max(0, posx);
+				posx = Math.min(timeline.offsetWidth, posx);
+
+				t = video.duration * posx / timeline.offsetWidth;
+				playing = !video.paused;
+				video.pause();
+				video.currentTime = t;
+				return true;
+			}, function (evt, x, y) {
+				var t, posx, parent;
+
+				//ignore right-click
+				if (evt.which === 3) {
+					return false;
+				} else if (evt.button === 2) {
+					return false;
+				}
+
+				posx = x - timeline.clientLeft - timeline.offsetLeft;
+				parent = timeline.offsetParent;
+				while (parent && parent.nodeName !== 'BODY') {
+					posx -= parent.clientLeft + parent.offsetLeft;
+					parent = parent.offsetParent;
+				}
+				posx = Math.max(0, posx);
+				posx = Math.min(timeline.offsetWidth, posx);
+
+				t = video.duration * posx / timeline.offsetWidth;
+				video.currentTime = t;
+				return true;
+			}, function (e) {
+				if (playing) {
+					video.play();
+				}
+				return true;
+			});
+
+		}());
+		</script>
+	</body>
+</html>
