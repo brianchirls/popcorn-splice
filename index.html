@@ -95,80 +95,9 @@
 
 			var video, popcorn, src,
 
-				events = [
-					//'switchplayer',
-
-					'timeupdate',
-					'ended',
-					'durationchange',
-					'loadedmetadata',
-					'loadstart',
-					'loadeddata',
-					'canplay',
-					'canplaythrough',
-					'progress',
-					'error',
-					'playing',
-					'suspend',
-					'waiting',
-					'seeking',
-					'seeked',
-					'play',
-					'pause',
-					'volumechange'
-				],
-				props = [
-					'duration',
-					'videoWidth',
-					'videoHeight',
-					'width',
-					'height',
-					'currentTime',
-					'volume',
-					'muted',
-					'networkState',
-					'readyState',
-					'buffered'
-				],
-
 				//player components
 				playbutton, timeline, progress, playtext, timecode,
 				addClass, removeClass;
-
-			function testEvents(vid) {
-				function logEvent(e) {
-					var args = [];
-					if (e && e.type) {
-						args.push(e.type);
-					} else {
-						args.push(vid.id);
-					}
-					Popcorn.forEach(props, function(prop) {
-						args.push(prop, vid[prop]);
-					});
-
-					if (vid.buffered && vid.buffered.length) {
-						args.push(vid.buffered.end(0));
-					}
-
-					console.log.apply(console, args);
-				}
-
-				if (!vid) {
-					vid = document.createElement('video');
-					document.body.insertBefore(vid, document.body.firstChild);
-					logEvent();
-					vid.src = '../popcorn-inception/video/demo.webm';
-				}
-
-				Popcorn.forEach(events, function (evt) {
-					vid.addEventListener(evt, logEvent, true);
-				});
-
-				logEvent();
-			}
-
-			//testEvents();
 
 			playbutton = document.getElementById('playbutton');
 			timeline = document.getElementById('timeline');
@@ -179,11 +108,10 @@
 			video = Popcorn.SplicePlayer('#video');
 
 			src = [
-			
+
 				'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAClCAYAAAA3d5OIAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH2gIPFxcpA4p/0AAAA2BJREFUeJzt2r9qVHkcxuHvmRyHhCASRcRStErnwnYWWdgljaX1doqCld5CRNhLELtd8AJs1sq5AmFTuMUqoiABXSZIxEgyzngDyWbI4vsrfJ72/HnPwHw4U0w3Go1m1cjz59drdfWfJtt/j8/XrdOPmmxXVfUvrtXk0r9Ntq/8caU2Hm402a6qGg9+qdPT/Sbb909cqyf7t5tsV1UNmi3Dd0hwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6C+rW1duPLyz/W4uK4yfbZ6akabTeZrqqqeycv17Phsybbf/2wVGujJtNVVbVy82IN3r9vsr2+PqzRjSbTVeUNB1GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgqO9PPm02PhuOa78/dejxy6sX6szK4cf/j+Xpcm1/Pv6/l7dejevNy3fHvv7DtGpx/9yxr/9P3bQ+94f/OXiws1MnNje/zfYcph8/1uzLlyPP67quBoP53gkLCwtznbe1tVWbDT97VxeuzpqtH+HPB3dq/eefWj/Gge7++luNfn/d+jEONBl8qrcrj1s/xqF2d3drNjv6a9f3fQ2Hw7nuubS0VF3XHXneZDKpvb29ue75LfhJCUGCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CvgJd+V3gFFLyFgAAAABJRU5ErkJggg==#duration=1.3',
 				{
 					src: [
-						'../popcorn-inception/video/demo.webm',
 						'http://videos.mozilla.org/serv/webmademovies/popcornsite.webm'
 					],
 					from: 10,
@@ -192,31 +120,13 @@
 				{
 					to: 5,
 					src: [
-						'../popcorn-inception/video/atultroll.webm',
 						'http://videos.mozilla.org/serv/webmademovies/atultroll.webm'
 					]
 				}
 			];
 
-/*
-			console.log(video.canPlayType('video/webm'));
-			console.log(video.canPlayType('video/mp4'));
-			console.log(video.canPlayType('video/x-vimeo'));
-			console.log(video._canPlaySrc('http://vimeo.com/45232468'));
-			console.log(video._canPlaySrc('http://videos.mozilla.org/serv/webmademovies/popcornsite.webm'));
-
-			console.log(video._canPlaySrc({}));
-			console.log(video._canPlaySrc({
-				src: 'http://vimeo.com/45232468'
-			}));
-			console.log(video._canPlaySrc(src));
-*/
 			video.id = 'splice';
 			video.src = src;
-			testEvents(video);
-			//video.play();
-			//video.loop = true;
-			//video.poster = 'http://videos.mozilla.org/serv/webmademovies/popcornposter.png';
 			video.addEventListener('loadedmetadata', function() {
 				video.volume = 0.5;
 			}, false);
@@ -224,8 +134,6 @@
 			video.addEventListener('waiting', function() {
 				console.log('waiting...');
 			}, false);
-
-			video.style.border = 'blue solid 1px';
 
 			popcorn = Popcorn(video);
 
